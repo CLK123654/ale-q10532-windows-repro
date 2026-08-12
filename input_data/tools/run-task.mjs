@@ -11,7 +11,7 @@ const chartRoot = path.join(outputRoot, "chart", "feature-freeze-control");
 const reportRoot = path.join(outputRoot, "reports");
 const stageRoot = path.join(packageRoot, ".feature_freeze_stage");
 const policyPath = path.join(inputRoot, "policy", "asset_contract.json");
-const policyArg = policyPath.replaceAll("\\", "/");
+const helmPolicyPath = path.join(packageRoot, ".helm-policy.json");
 const casesPath = path.join(inputRoot, "cases", "render_cases.csv");
 const helmBin = process.env.HELM_BIN || "helm";
 
@@ -58,6 +58,7 @@ async function main() {
       fs.readFile(casesPath, "utf8")
     ]);
     const policy = JSON.parse(policyText);
+    await fs.writeFile(helmPolicyPath, policyText, "utf8");
     const cases = parseCsv(casesText);
     ensure(cases.length > 0, "发布案例清单为空");
     ensure((await fs.stat(chartRoot)).isDirectory(), "完成Chart不存在");
@@ -71,7 +72,7 @@ async function main() {
 
     for (const item of cases) {
       const valuesPath = path.join(inputRoot, "cases", item.values_file);
-      const shared = [chartRoot, "--namespace", item.namespace, "-f", valuesPath, "--set-file", `contract.document=${policyArg}`];
+      const shared = [chartRoot, "--namespace", item.namespace, "-f", valuesPath, "--set-file", "contract.document=.helm-policy.json"];
       runHelm(["lint", ...shared]);
       const documents = readDocuments(runHelm(["template", item.release_name, ...shared]));
 
@@ -170,10 +171,12 @@ async function main() {
       }
     }, null, 2)}\n`, "utf8");
     await fs.rename(stageRoot, reportRoot);
+    await fs.rm(helmPolicyPath, { force: true });
     console.log(`已生成${cases.length}个发布案例的Helm交接材料`);
   } catch (error) {
     await fs.rm(stageRoot, { recursive: true, force: true });
     await fs.rm(reportRoot, { recursive: true, force: true });
+    await fs.rm(helmPolicyPath, { force: true });
     console.error(error.message);
     process.exitCode = 1;
   }
