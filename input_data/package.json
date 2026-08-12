@@ -1,0 +1,11 @@
+{
+  "name": "feature-freeze-chart-handover",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "process": "node tools/run-task.mjs"
+  },
+  "dependencies": {
+    "yaml": "2.7.1"
+  }
+}

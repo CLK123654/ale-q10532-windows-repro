@@ -1,0 +1,97 @@
+总分：100分
+
+1. 交付结构与Helm执行链
+分值：12分
+标准答案：完成Chart和五份报告都位于Prompt指定路径；入口正常结束；每个发布案例都由Helm完成lint和template，四份CSV来自渲染对象。
+关键字段：output/chart/feature-freeze-control；rendered_object_inventory.csv；rbac_permissions.csv；network_boundaries.csv；hook_sequence.csv；release_handover.json；helm_version。
+容差：相对路径按Prompt逐字比较；CSV允许必要转义以及LF或CRLF行尾；Helm兼容版本差异不计分。
+失败边界：核心交付缺失或不可读、入口非零结束、未运行Helm、遗漏发布案例，或CSV未取自渲染对象。
+可观察证据：查看交付树、进程结束状态、Helm输出和五份报告结构。
+客观硬性标准：完成Chart与五份报告齐全，入口返回0，Helm实际承担所有发布案例的Chart解析与对象渲染。
+阈值：三项硬性标准全部满足。
+优先级：Gate项
+所属层级：L8运行验证或可执行行为层
+
+2. 输入消费与发布案例映射
+分值：12分
+标准答案：资产合同、发布清单和三份values均参与处理；每个案例的发布名、命名空间、values文件、副本、策略模式和Hook截止时间按输入对应；完成Chart未固化具体案例值。
+关键字段：asset_contract.json；render_cases.csv；preview-values.yaml；production-values.yaml；regulated-values.yaml；Release.Name；Release.Namespace；replicaCount；mode；hook.deadlineSeconds。
+容差：案例按case_id无序比较；字符串、整数和枚举值与输入精确一致；JSON键序和YAML排版不计分。
+失败边界：主要输入未使用、案例映射错位、任一values被遗漏，或Chart写入具体发布名、命名空间或案例值。
+可观察证据：连接发布清单、values、Helm参数、渲染对象和发布交接记录。
+客观硬性标准：全部业务输入被消费，全部案例映射准确，Chart保持案例可配置。
+阈值：三个硬性标准全部满足。
+优先级：Gate项
+所属层级：L3输入数据导入与完整性层
+
+3. Chart对象集合与Schema
+分值：13分
+标准答案：每个案例包含Prompt列出的对象类型，其中Job按合同用途分为合同检查与策略探针；对象名由发布名派生，命名空间来自案例；values.schema.json覆盖Chart使用的顶层业务字段及其必要子字段。
+关键字段：apiVersion；kind；metadata.name；metadata.namespace；values.schema.json；replicaCount；mode；image；contract；hook；resources。
+容差：对象和字段集合按业务主键无序比较；名称可采用稳定的发布前缀派生写法；Schema可使用等价JSONSchema约束。
+失败边界：缺少必需对象类型、增加未说明业务对象、对象主键重复、名称或命名空间不受输入驱动，或Schema漏掉Chart实际消费的业务字段。
+可观察证据：查看三次helm template结果、对象清单、Chart模板和values.schema.json。
+客观硬性标准：每个案例的对象集合完整且主键唯一，命名正确归属案例，Schema与Chart消费字段闭合。
+阈值：所有案例满足三个硬性标准。
+优先级：高权重项
+所属层级：L7产物结构或Schema或专业对象层
+
+4. 最小权限身份链
+分值：13分
+标准答案：Role逐条实现asset_contract.json的rbac_rules，不增加合同外资源、动词或通配符；RoleBinding仅将控制器ServiceAccount绑定到同命名空间的对应Role；权限清单逐条反映渲染Role。
+关键字段：rbac_rules；Role.rules；RoleBinding.subjects；RoleBinding.roleRef；ServiceAccount.metadata；rbac_permissions.csv。
+容差：规则和权限行按api_group、resource、verb无序比较；YAML规则分组方式可调整，但展开后的权限集合必须与合同相同。
+失败边界：缺少合同权限、增加合同外权限、出现通配资源或动词、身份或Role跨命名空间，或权限清单与渲染对象不一致。
+可观察证据：按case_id连接资产合同、Role、RoleBinding、ServiceAccount和权限清单。
+客观硬性标准：权限集合等于合同，绑定关系限制在当前案例命名空间，报告与对象逐条一致。
+阈值：所有案例满足三个硬性标准。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+5. 网络边界
+分值：13分
+标准答案：NetworkPolicy同时声明Ingress和Egress；入站只指向合同训练编排器标签和端口；出站只指向合同集群DNS的协议端口与对象存储网段端口；网络清单逐条反映渲染规则。
+关键字段：policyTypes；podSelector；ingress.from；ingress.ports；egress.to；egress.ports；orchestrator；cluster_dns；object_store；network_boundaries.csv。
+容差：入站和出站规则按方向、目标、协议、端口无序比较；等价的YAML字段排版不计分。
+失败边界：缺少入站或出站边界、目标或端口与合同不符、增加合同外网络通路，或网络清单与NetworkPolicy不一致。
+可观察证据：按case_id连接资产合同、NetworkPolicy和网络边界清单。
+客观硬性标准：策略类型完整，全部网络规则等于合同允许集合，报告与对象逐条一致。
+阈值：所有案例满足三个硬性标准。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+6. 工作负载安全与选择器
+分值：14分
+标准答案：Deployment和两个Job的Pod以非根身份运行并使用RuntimeDefault；所有容器禁止提权、根文件系统只读且capabilities删除ALL；Deployment、Service、PodDisruptionBudget与NetworkPolicy使用同一组控制器选择器；ConfigMap中的合同JSON与输入语义一致。
+关键字段：securityContext.runAsNonRoot；seccompProfile.type；allowPrivilegeEscalation；readOnlyRootFilesystem；capabilities.drop；spec.selector；asset-contract.json。
+容差：标签键和值可采用等价的发布隔离设计；JSON键序不计分；安全字段布置需符合Kubernetes对象层级。
+失败边界：任一工作负载或容器缺少安全字段、选择器不能关联同一控制器，或ConfigMap合同缺字段、改值。
+可观察证据：查看Deployment、两个Job、Service、PodDisruptionBudget、NetworkPolicy、ConfigMap与输入合同。
+客观硬性标准：三个工作负载安全配置完整，四类对象选择器一致，合同语义完整保留。
+阈值：所有案例满足三个硬性标准。
+优先级：高权重项
+所属层级：L7产物结构或Schema或专业对象层
+
+7. 发布Hook编排
+分值：11分
+标准答案：合同检查Job与策略探针Job分别采用asset_contract.json声明的阶段和权重；两者使用合同删除策略；activeDeadlineSeconds来自对应values；Hook清单逐行反映渲染Job。
+关键字段：release_hooks.contract_check；release_hooks.policy_smoke；release_hooks.delete_policy；helm.sh/hook；helm.sh/hook-weight；helm.sh/hook-delete-policy；activeDeadlineSeconds；hook_sequence.csv。
+容差：阶段和删除策略按集合比较；同一注解内的等价顺序不计分；权重与截止时间为整数且容差为0。
+失败边界：Job职责颠倒、阶段、权重、删除策略或截止时间来源错误，或Hook清单与渲染对象不一致。
+可观察证据：按case_id和job_name连接资产合同、values、Job注解与Hook清单。
+客观硬性标准：两个Job角色明确，合同规则和案例截止时间准确落地，报告与对象逐条一致。
+阈值：所有案例满足三个硬性标准。
+优先级：普通项
+所属层级：L6领域计算与专业规则层
+
+8. 报告与发布交接一致性
+分值：12分
+标准答案：对象清单覆盖全部渲染对象，三份专项清单分别覆盖Role权限、NetworkPolicy边界和JobHook；release_handover.json包含合同标识、Helm版本、每个发布案例的命名空间、副本、策略模式和对象数，并汇总四份CSV记录数；共享数据相互一致。
+关键字段：四份CSV全部列；contract_id；helm_version；release_cases；report_rows；case_id；namespace；replica_count；policy_mode；object_count。
+容差：CSV行序和JSON键序不计分；计数为整数且容差为0；案例按case_id无序比较。
+失败边界：报告漏对象、专项清单混入其它对象、发布交接记录缺主题，或案例字段、对象数、报告行数跨文件不一致。
+可观察证据：以case_id、对象主键、权限三元组、网络规则和job_name连接四份CSV、发布交接记录及Helm对象。
+客观硬性标准：五份报告结构完整，业务记录集合来源明确，共享案例及记录数完全一致。
+阈值：三个硬性标准全部满足。
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["replicaCount", "mode", "image", "contract", "hook", "resources"],
+  "properties": {
+    "replicaCount": {"type": "integer", "minimum": 1, "maximum": 6},
+    "mode": {"type": "string", "enum": ["Audit", "Enforce"]},
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "tag", "pullPolicy"],
+      "properties": {
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "pullPolicy": {"type": "string", "enum": ["IfNotPresent", "Always"]}
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document"],
+      "properties": {"document": {"type": "string", "minLength": 2}}
+    },
+    "hook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deadlineSeconds"],
+      "properties": {"deadlineSeconds": {"type": "integer", "minimum": 30, "maximum": 300}}
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requests", "limits"],
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cpu", "memory"],
+          "properties": {"cpu": {"type": "string"}, "memory": {"type": "string"}}
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cpu", "memory"],
+          "properties": {"cpu": {"type": "string"}, "memory": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

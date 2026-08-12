@@ -1,0 +1,17 @@
+replicaCount: 2
+mode: Enforce
+image:
+  repository: registry.example.net/ml/feature-freeze-controller
+  tag: "2.6.0"
+  pullPolicy: IfNotPresent
+contract:
+  document: "{}"
+hook:
+  deadlineSeconds: 120
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

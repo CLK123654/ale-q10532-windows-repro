@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "feature-freeze.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "feature-freeze.selectorLabels" . | nindent 6 }}

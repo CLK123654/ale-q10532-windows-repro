@@ -1,0 +1,11 @@
+{{- $contract := fromJson .Values.contract.document -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "feature-freeze.name" . }}-contract
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+data:
+  asset-contract.json: |
+    {{- $contract | toPrettyJson | nindent 4 }}

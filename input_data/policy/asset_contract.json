@@ -1,0 +1,27 @@
+{
+  "contract_id": "feature-freeze-v4",
+  "required_assets": [
+    {"asset_key": "raw_clicks", "uri": "s3://feature-store/assets/raw_clicks"},
+    {"asset_key": "raw_orders", "uri": "s3://feature-store/assets/raw_orders"},
+    {"asset_key": "user_profiles", "uri": "s3://feature-store/assets/user_profiles"},
+    {"asset_key": "label_events", "uri": "s3://feature-store/assets/label_events"}
+  ],
+  "drift_thresholds": {
+    "country_mix": {"warn": 0.08, "fail": 0.12},
+    "device_mix": {"warn": 0.07, "fail": 0.10},
+    "price_bucket": {"warn": 0.10, "fail": 0.15}
+  },
+  "release_states": {"pass": "publish", "warn": "canary", "fail": "hold"},
+  "rbac_rules": [
+    {"api_group": "", "resource": "configmaps", "verbs": ["get", "list", "watch"]},
+    {"api_group": "batch", "resource": "jobs", "verbs": ["create", "get", "list", "watch", "delete"]}
+  ],
+  "object_store": {"cidr": "10.48.16.0/24", "port": 443},
+  "orchestrator": {"pod_label": "training-orchestrator", "port": 8080},
+  "cluster_dns": {"namespace": "kube-system", "pod_label": "kube-dns", "port": 53, "protocols": ["UDP", "TCP"]},
+  "release_hooks": {
+    "contract_check": {"phases": ["pre-install", "pre-upgrade"], "weight": -20},
+    "policy_smoke": {"phases": ["post-install", "post-upgrade"], "weight": 20},
+    "delete_policy": ["before-hook-creation", "hook-succeeded"]
+  }
+}

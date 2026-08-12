@@ -1,0 +1,72 @@
+{{- $contract := fromJson .Values.contract.document -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "feature-freeze.name" . }}-contract-check
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: {{ join "," $contract.release_hooks.contract_check.phases }}
+    helm.sh/hook-weight: {{ $contract.release_hooks.contract_check.weight | quote }}
+    helm.sh/hook-delete-policy: {{ join "," $contract.release_hooks.delete_policy }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ .Values.hook.deadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "feature-freeze.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: contract-check
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args: ["validate-contract", "--file", "/etc/feature-contract/asset-contract.json"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: contract, mountPath: /etc/feature-contract, readOnly: true}
+      volumes:
+        - name: contract
+          configMap:
+            name: {{ include "feature-freeze.name" . }}-contract
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "feature-freeze.name" . }}-policy-smoke
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: {{ join "," $contract.release_hooks.policy_smoke.phases }}
+    helm.sh/hook-weight: {{ $contract.release_hooks.policy_smoke.weight | quote }}
+    helm.sh/hook-delete-policy: {{ join "," $contract.release_hooks.delete_policy }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ .Values.hook.deadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "feature-freeze.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: policy-smoke
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args: ["probe", "--endpoint", {{ printf "http://%s:8080/readyz" (include "feature-freeze.name" .) | quote }}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}

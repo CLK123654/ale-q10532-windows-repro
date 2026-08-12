@@ -1,0 +1,4 @@
+evidence/
+node_modules/
+output/
+.feature_freeze_stage/

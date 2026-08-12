@@ -1,0 +1,8 @@
+阅读README、资产合同、发布清单和三份values，核对文件关系及案例差异。
+完成Chart元数据、默认值与Schema，约束副本、策略模式、镜像、合同、Hook和资源字段。
+构建ServiceAccount、Role与RoleBinding，把合同权限映射到命名空间身份链。
+构建ConfigMap、Deployment、Service和PodDisruptionBudget，统一合同挂载、发布标签与选择器。
+构建NetworkPolicy，把训练编排器、集群DNS和对象存储合同转成明确的入站与出站规则。
+配置工作负载安全计算字段，并为合同检查和策略探针设置发布Hook阶段、权重与删除策略。
+用Helm逐个读取发布配置，完成Chart语义检查和对象渲染。
+从渲染对象导出对象、权限、网络与Hook清单，汇总发布交接记录。

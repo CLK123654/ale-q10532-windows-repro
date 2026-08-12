@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "feature-freeze.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "feature-freeze.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "feature-freeze.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "feature-freeze.name" . }}
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: controller
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["serve", "--contract", "/etc/feature-contract/asset-contract.json"]
+          env:
+            - name: POLICY_MODE
+              value: {{ .Values.mode | quote }}
+            - name: RELEASE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: contract
+              mountPath: /etc/feature-contract
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: contract
+          configMap:
+            name: {{ include "feature-freeze.name" . }}-contract
+        - name: tmp
+          emptyDir: {}

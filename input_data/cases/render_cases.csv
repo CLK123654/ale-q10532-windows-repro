@@ -1,0 +1,4 @@
+case_id,release_name,namespace,values_file,expected_replicas,expected_mode,expected_hook_deadline
+preview,ff-preview,feature-preview,preview-values.yaml,1,Audit,60
+production,ff-prod,feature-production,production-values.yaml,3,Enforce,120
+regulated,ff-reg,feature-regulated,regulated-values.yaml,2,Enforce,180

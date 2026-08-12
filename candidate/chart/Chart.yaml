@@ -1,0 +1,6 @@
+apiVersion: v2
+name: feature-freeze-control
+description: Least-privilege release controller for frozen feature assets
+type: application
+version: 1.0.0
+appVersion: "2.6.0"

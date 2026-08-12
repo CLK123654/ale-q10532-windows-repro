@@ -1,0 +1,31 @@
+{{- $contract := fromJson .Values.contract.document -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "feature-freeze.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+rules:
+{{- range $contract.rbac_rules }}
+  - apiGroups: [{{ .api_group | quote }}]
+    resources: [{{ .resource | quote }}]
+    verbs:
+      {{- toYaml .verbs | nindent 6 }}
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "feature-freeze.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "feature-freeze.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "feature-freeze.name" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "feature-freeze.name" . }}
