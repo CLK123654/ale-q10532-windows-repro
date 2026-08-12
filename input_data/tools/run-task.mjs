@@ -11,6 +11,7 @@ const chartRoot = path.join(outputRoot, "chart", "feature-freeze-control");
 const reportRoot = path.join(outputRoot, "reports");
 const stageRoot = path.join(packageRoot, ".feature_freeze_stage");
 const policyPath = path.join(inputRoot, "policy", "asset_contract.json");
+const policyArg = policyPath.replaceAll("\\", "/");
 const casesPath = path.join(inputRoot, "cases", "render_cases.csv");
 const helmBin = process.env.HELM_BIN || "helm";
 
@@ -70,7 +71,7 @@ async function main() {
 
     for (const item of cases) {
       const valuesPath = path.join(inputRoot, "cases", item.values_file);
-      const shared = [chartRoot, "--namespace", item.namespace, "-f", valuesPath, "--set-file", `contract.document=${policyPath}`];
+      const shared = [chartRoot, "--namespace", item.namespace, "-f", valuesPath, "--set-file", `contract.document=${policyArg}`];
       runHelm(["lint", ...shared]);
       const documents = readDocuments(runHelm(["template", item.release_name, ...shared]));
 
