@@ -25,16 +25,7 @@ jobs:
           $helm = Join-Path $runtime 'windows-amd64\helm.exe'
           "HELM_BIN=$helm" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           & $helm version --short
-      - name: InstallDependencies
-        shell: pwsh
-        working-directory: input_data
-        run: npm ci
-      - name: GenerateReference
-        if: ${{ !hashFiles('reference.zip') }}
-        shell: pwsh
-        run: ./verification/bootstrap_reference.ps1
       - name: CheckFinalPackage
-        if: ${{ hashFiles('reference.zip') }}
         shell: pwsh
         run: ./verification/windows_gate.ps1
       - uses: actions/upload-artifact@v4

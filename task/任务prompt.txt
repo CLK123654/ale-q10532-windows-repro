@@ -1,9 +1,9 @@
-特征平台准备把封账控制器推广到预览、生产和强监管命名空间。平台工程师负责补齐HelmChart，并把权限、网络和发布Hook交给安全、网络及特征治理人员审核。`input_data/README.md`说明入口和文件关系，`policy/asset_contract.json`记录资产、权限、网络与Hook合同，`cases/render_cases.csv`和三份values文件记录发布名、命名空间、副本、策略模式及Hook截止时间。
+特征平台准备把封账控制器推广到预览、生产和强监管命名空间。平台工程师负责补齐HelmChart，并把权限、网络和发布Hook交给安全、网络及特征治理人员审核。input_data/README.md说明入口和文件关系，policy/asset_contract.json记录资产、权限、网络与Hook合同，cases/render_cases.csv和三份values文件记录发布名、命名空间、副本、策略模式及Hook截止时间。
 
-请完成`output/chart/feature-freeze-control`，并在`input_data`目录执行`npm run process`。入口须调用`helm lint`和`helm template`处理发布清单中的每个案例。Chart需要渲染ServiceAccount、Role、RoleBinding、ConfigMap、Deployment、Service、NetworkPolicy、PodDisruptionBudget，以及合同检查和策略探针两个Job。对象名由发布名派生，命名空间来自发布清单；Deployment副本、策略模式和Job截止时间来自对应values文件；ConfigMap中的资产合同与外部JSON保持语义一致。
+请完成output/chart/feature-freeze-control，并在input_data目录执行npm run process。入口须调用helm lint和helm template处理发布清单中的每个案例。Chart需要渲染ServiceAccount、Role、RoleBinding、ConfigMap、Deployment、Service、NetworkPolicy、PodDisruptionBudget，以及合同检查和策略探针两个Job。对象名由发布名派生，命名空间来自发布清单；Deployment副本、策略模式和Job截止时间来自对应values文件；ConfigMap中的资产合同与外部JSON保持语义一致。
 
 Role按资产合同展开命名空间内的最小权限，不使用通配资源或通配动词。RoleBinding把控制器ServiceAccount绑定到同命名空间Role。NetworkPolicy同时声明入站与出站规则，只接纳合同指定的训练编排器入口，并只放行合同指定的集群DNS和对象存储出口。Deployment、Service、PodDisruptionBudget与NetworkPolicy使用同一组控制器选择器。
 
 Deployment和两个Hook工作负载均以非根身份运行并使用RuntimeDefault安全计算配置；容器禁止提权，根文件系统只读，capabilities删除ALL。合同检查Job按照资产合同进入安装和升级前阶段，策略探针Job进入安装和升级后阶段；阶段、权重与删除策略都从合同规则落到Hook注解。
 
-交付完整Chart，以及`output/reports/rendered_object_inventory.csv`、`rbac_permissions.csv`、`network_boundaries.csv`、`hook_sequence.csv`和`release_handover.json`。四份CSV由Helm渲染对象导出；发布交接记录写明合同标识、Helm版本、各发布案例的命名空间、副本、策略模式和对象数，并汇总四份CSV的记录数。各文件共享的案例、对象和记录数应彼此一致。
+交付完整Chart，以及output/reports/rendered_object_inventory.csv、rbac_permissions.csv、network_boundaries.csv、hook_sequence.csv和release_handover.json。四份CSV由Helm渲染对象导出；发布交接记录写明合同标识、Helm版本、各发布案例的命名空间、副本、策略模式和对象数，并汇总四份CSV的记录数。各文件共享的案例、对象和记录数应彼此一致。
