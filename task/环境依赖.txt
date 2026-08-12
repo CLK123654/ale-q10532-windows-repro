@@ -1,5 +1,5 @@
 操作系统： Windows11、macOS或主流64位Linux。
 
-主软件使用Helm3.14或更高兼容版本，负责读取Chart、values和Schema并生成Kubernetes对象。Node.js20或更高兼容版本负责调用Helm、读取JSON和CSV，并借助package-lock.json锁定的yaml依赖解析渲染结果。安装代码依赖时需要访问包注册表；业务处理阶段只读取本地输入，不需要连接Kubernetes集群。
+主软件使用Helm3.14或更高兼容版本，负责读取Chart、values和Schema并生成Kubernetes对象。Node.js20或更高兼容版本负责调用Helm、读取JSON和CSV，并借助package-lock.json锁定的yaml依赖解析渲染结果。安装代码依赖时需要访问包注册表，业务处理阶段采用本地Chart渲染。
 
-执行账号需要读取input_data和完成Chart，并能在同级output目录写入交付。CPU和内存满足当前输入规模的多案例渲染与对象解析即可；磁盘能够容纳输入、代码依赖、完成Chart和五份报告；本题不使用GPU。入口采用有限超时覆盖当前批次，避免Helm或脚本异常时长期占用发布窗口。
+执行账号需要读取input_data和完成Chart，并能在同级output目录写入交付。当前规模可使用通用多核CPU与常规内存，图形处理器保持系统默认配置即可。磁盘需容纳输入、代码依赖、完成Chart和五份报告。入口采用覆盖当前批次的有限超时。

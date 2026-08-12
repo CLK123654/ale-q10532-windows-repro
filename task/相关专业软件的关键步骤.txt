@@ -1,10 +1,10 @@
-1.阅读README、资产合同、发布清单和三份values，确认案例字段、完成Chart路径和报告路径。
-2.完成Chart.yaml、values.yaml与values.schema.json，定义镜像、合同、策略模式、Hook及资源字段。
-3.在ConfigMap模板中读取外部资产合同，并将合同JSON完整写入业务配置。
-4.在ServiceAccount、Role和RoleBinding模板中落地合同声明的权限与同命名空间绑定关系。
-5.在Deployment、Service和PodDisruptionBudget模板中统一发布标签、选择器、副本和策略模式。
-6.在NetworkPolicy模板中引用合同里的训练编排器、集群DNS和对象存储边界。
-7.为Deployment和两个Hook工作负载补齐非根运行、RuntimeDefault、禁止提权、只读根文件系统与capabilities删除ALL。
-8.为合同检查与策略探针Job配置各自的Hook阶段、权重、删除策略和案例截止时间。
-9.对发布清单中的每个案例执行helm lint和helm template，取得对应命名空间的对象集合。
-10.解析Helm渲染结果，导出四份CSV并生成发布交接记录，核对共享案例和记录数。
+1. 阅读README、资产合同、发布清单和三份values，确认案例字段、完成Chart路径和报告路径。
+2. 完成Chart.yaml、values.yaml与values.schema.json，定义镜像、合同、策略模式、Hook及资源字段。
+3. 在ConfigMap模板中读取外部资产合同，并将合同JSON完整写入业务配置。
+4. 在ServiceAccount、Role和RoleBinding模板中落地合同声明的权限与同命名空间绑定关系。
+5. 在Deployment、Service和PodDisruptionBudget模板中统一发布标签、选择器、副本和策略模式。
+6. 在NetworkPolicy模板中引用合同里的训练编排器、集群DNS和对象存储边界。
+7. 为Deployment和两个Hook工作负载补齐非根运行、RuntimeDefault、禁止提权、只读根文件系统与capabilities删除ALL。
+8. 为合同检查与策略探针Job配置各自的Hook阶段、权重、删除策略和案例截止时间。
+9. 对发布清单中的每个案例执行helm lint和helm template，取得对应命名空间的对象集合。
+10. 解析Helm渲染结果，导出四份CSV并生成发布交接记录，核对共享案例和记录数。
